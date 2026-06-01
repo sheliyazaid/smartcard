@@ -6,11 +6,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(__dirname, '../dist/client');
 
 export default async function handler(req, res) {
+  console.log('Request:', req.method, req.url);
+
   try {
     // Check if it's a static file request
     const filePath = path.join(publicDir, req.url);
+    console.log('Checking file:', filePath);
 
     if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+      console.log('Serving static file');
       const content = fs.readFileSync(filePath);
       const ext = path.extname(filePath);
       const mimeTypes = {
@@ -30,6 +34,7 @@ export default async function handler(req, res) {
       return;
     }
 
+    console.log('Handling as SSR');
     // Otherwise, handle as SSR
     const { default: server } = await import('../dist/server/server.js');
 
@@ -40,6 +45,7 @@ export default async function handler(req, res) {
       body: ['GET', 'HEAD'].includes(req.method) ? null : req,
     });
 
+    console.log('Calling server.fetch');
     const response = await server.fetch(fetchReq);
 
     res.statusCode = response.status;
@@ -52,8 +58,9 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('Error:', error);
     res.statusCode = 500;
-    res.end('Internal Server Error');
+    res.end('Internal Server Error: ' + error.message);
   }
 }
+
 
 
