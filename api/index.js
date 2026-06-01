@@ -1,5 +1,36 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const publicDir = path.join(__dirname, '../dist/client');
+
 export default async function handler(req, res) {
   try {
+    // Check if it's a static file request
+    const filePath = path.join(publicDir, req.url);
+
+    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+      const content = fs.readFileSync(filePath);
+      const ext = path.extname(filePath);
+      const mimeTypes = {
+        '.html': 'text/html; charset=utf-8',
+        '.js': 'application/javascript',
+        '.css': 'text/css',
+        '.json': 'application/json',
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.gif': 'image/gif',
+        '.svg': 'image/svg+xml',
+        '.ico': 'image/x-icon',
+      };
+      res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
+      res.end(content);
+      return;
+    }
+
+    // Otherwise, handle as SSR
     const { default: server } = await import('../dist/server/server.js');
 
     const url = new URL(req.url, `http://${req.headers.host}`);
@@ -24,4 +55,5 @@ export default async function handler(req, res) {
     res.end('Internal Server Error');
   }
 }
+
 
