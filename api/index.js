@@ -10,7 +10,8 @@ export default async function handler(req, res) {
 
   try {
     // Check if it's a static file request
-    const filePath = path.join(publicDir, req.url);
+    const urlPath = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`).pathname;
+    const filePath = path.join(publicDir, urlPath);
     console.log('Checking file:', filePath);
 
     if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {

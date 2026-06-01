@@ -61,6 +61,13 @@
   }
 }
 
+/* Framer Motion SSR: content starts at opacity 0 — show it until React hydrates */
+html:not([data-hydrated="true"]) [style*="opacity: 0"],
+html:not([data-hydrated="true"]) [style*="opacity:0"] {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
 :root {
   --radius: 1rem;
 
