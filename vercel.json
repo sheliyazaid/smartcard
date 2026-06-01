@@ -1,17 +1,7 @@
 {
   "buildCommand": "npm run build",
-  "installCommand": "npm install",
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "public": "dist/client",
-  "cleanUrls": true,
-  "rewrites": [
-    {
-      "source": "/((?!assets|.*\\.\\w+$).*)",
-      "destination": "/api"
-    }
-  ]
+  "outputDirectory": "dist/client"
 }
+
 
 
