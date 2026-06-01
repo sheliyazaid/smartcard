@@ -6,12 +6,5 @@
     "NODE_ENV": "production"
   },
   "framework": "vite",
-  "devCommand": "npm run dev",
-  "regions": ["iad1"],
-  "functions": {
-    "api/**": {
-      "memory": 1024,
-      "maxDuration": 60
-    }
-  }
+  "devCommand": "npm run dev"
 }
