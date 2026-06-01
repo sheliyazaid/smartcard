@@ -1,15 +1,27 @@
-export const config = {
-  runtime: 'edge',
-};
-
-export default async function handler(request) {
+export default async function handler(req, res) {
   try {
     const { default: server } = await import('../dist/server/server.js');
 
-    const response = await server.fetch(request);
-    return response;
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const fetchReq = new Request(url, {
+      method: req.method,
+      headers: req.headers,
+      body: ['GET', 'HEAD'].includes(req.method) ? null : req,
+    });
+
+    const response = await server.fetch(fetchReq);
+
+    res.statusCode = response.status;
+    response.headers.forEach((value, key) => {
+      res.setHeader(key, value);
+    });
+
+    const body = await response.text();
+    res.end(body);
   } catch (error) {
     console.error('Error:', error);
-    return new Response('Internal Server Error', { status: 500 });
+    res.statusCode = 500;
+    res.end('Internal Server Error');
   }
 }
+
