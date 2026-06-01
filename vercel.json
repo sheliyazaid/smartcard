@@ -4,11 +4,14 @@
   "env": {
     "NODE_ENV": "production"
   },
+  "public": "dist/client",
+  "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!assets|.*\\.\\w+$).*)",
       "destination": "/api"
     }
   ]
 }
+
 

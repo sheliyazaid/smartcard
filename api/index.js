@@ -1,36 +1,32 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+export default async function handler(req, res) {
+  try {
+    // Import the server handler dynamically
+    const { default: server } = await import('../dist/server/server.js');
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const publicDir = path.join(__dirname, '../dist/client');
+    // Create a Fetch-compatible request
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const fetchRequest = new Request(url.toString(), {
+      method: req.method,
+      headers: new Headers(req.headers),
+      body: ['GET', 'HEAD'].includes(req.method) ? null : req,
+    });
 
-export default function handler(req, res) {
-  // Try to serve a file
-  let filePath = path.join(publicDir, req.url === '/' ? 'index.html' : req.url);
+    // Call the server's fetch handler
+    const response = await server.fetch(fetchRequest, {}, {});
 
-  // If it's a directory or doesn't exist, try index.html (for SPA routing)
-  if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
-    filePath = path.join(publicDir, 'index.html');
-  }
+    // Send response headers
+    res.statusCode = response.status;
+    response.headers.forEach((value, key) => {
+      res.setHeader(key, value);
+    });
 
-  if (fs.existsSync(filePath)) {
-    const content = fs.readFileSync(filePath);
-    const ext = path.extname(filePath);
-    const mimeTypes = {
-      '.html': 'text/html',
-      '.js': 'application/javascript',
-      '.css': 'text/css',
-      '.json': 'application/json',
-      '.png': 'image/png',
-      '.jpg': 'image/jpeg',
-      '.gif': 'image/gif',
-      '.svg': 'image/svg+xml',
-    };
-    res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
-    res.end(content);
-  } else {
-    res.statusCode = 404;
-    res.end('Not found');
+    // Send response body
+    const body = await response.text();
+    res.end(body);
+  } catch (error) {
+    console.error('Error:', error);
+    res.statusCode = 500;
+    res.end('Internal Server Error');
   }
 }
+
